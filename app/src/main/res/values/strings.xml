@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">connectivity</string>
+    <string name="current_time">Current Time</string>
+    <string name="type">Type</string>
+    <string name="result">Result</string>
+    <string name="enter_status_code_hint">Enter status code</string>
+    <string name="status_code">Status Code</string>
+    <string name="enter_url_hint">Enter URL</string>
+    <string name="url">URL</string>
+    <string name="add_connection">Add connection</string>
+    <string name="refresh">Refresh</string>
+    <string name="enter_description_hint">Enter description</string>
+    <string name="description">Description</string>
+    <string name="default_url">http://</string>
+    <string name="success">Success</string>
+</resources>
