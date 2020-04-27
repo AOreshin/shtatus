@@ -18,7 +18,7 @@ import java.util.function.Predicate
 
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var fragment: ConnectionListFragment
+    private val fragment: ConnectionListFragment by lazy { ConnectionListFragment() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,8 +28,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun addFragment() {
-        fragment = ConnectionListFragment()
-
         supportFragmentManager
             .beginTransaction()
             .add(R.id.fragment_container, fragment)

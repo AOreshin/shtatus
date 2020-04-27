@@ -47,9 +47,7 @@ class EditingDialogFragment: DialogFragment() {
                 .find(id!!)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe {
-                    populateData(it)
-                }
+                .subscribe { populateData(it) }
 
             val dialog = AlertDialog
                 .Builder(it)
@@ -61,9 +59,9 @@ class EditingDialogFragment: DialogFragment() {
 
             dialog.show()
 
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener { view ->
                 if (validateInputs()) {
-                    insert(id, it.context)
+                    insert(id, view.context)
                     dialog.dismiss()
                 }
             }
@@ -77,29 +75,20 @@ class EditingDialogFragment: DialogFragment() {
         urlEt.setText(connection.url)
     }
 
-    private fun insert(id: Int?, context: Context) {
-        val disposable = connectionDao
-            .find(id!!)
+    private fun insert(id: Int, context: Context) {
+        val connection = Connection(
+            id,
+            descriptionEt.text.toString(),
+            urlEt.text.toString()
+        )
+
+        val disposable = Completable.fromAction { connectionDao.insert(connection) }
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                val connection = Connection(
-                    it.id,
-                    descriptionEt.text.toString(),
-                    urlEt.text.toString()
-                )
-
-                Completable
-                    .fromAction { connectionDao.insert(connection) }
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe {
-                        Log.d("","Edited successfully!")
-                        Toast.makeText(context, "Edited successfully!", Toast.LENGTH_SHORT).show()
-                    }
-            }, {
-                Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
-            })
+            .subscribe {
+                Log.d("EditingDialogFragment","Edited successfully!")
+                Toast.makeText(context, "Edited successfully!", Toast.LENGTH_SHORT).show()
+            }
 
         compositeDisposable.add(disposable)
     }
