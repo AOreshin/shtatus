@@ -1,79 +1,61 @@
 package com.github.aoreshin.connectivity.dialogs
 
 import android.app.Dialog
-import android.content.Context
 import android.os.Bundle
-import android.util.Log
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.ViewModelProvider
 import com.github.aoreshin.connectivity.dagger.ConnectivityApplication
-import com.github.aoreshin.connectivity.room.ConnectionDao
-import io.reactivex.Completable
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
+import com.github.aoreshin.connectivity.viewmodels.ApplicationViewModel
 import javax.inject.Inject
 
 class DeletingDialogFragment: DialogFragment() {
-    private val compositeDisposable = CompositeDisposable()
-
     @Inject
-    lateinit var connectionDao: ConnectionDao
+    lateinit var viewModelFactory: ViewModelProvider.Factory
+
+    private lateinit var applicationViewModel: ApplicationViewModel
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         return activity?.let {
             val application = it.application as ConnectivityApplication
-
             application.appComponent.inject(this)
+
+            val viewModelProvider = ViewModelProvider(this, viewModelFactory)
+            applicationViewModel = viewModelProvider.get(ApplicationViewModel::class.java)
 
             val id = arguments?.getInt(CONNECTION_ID)
 
-            val dialog = AlertDialog
-                .Builder(it)
-                .setMessage("Delete this connection?")
-                .setNeutralButton("Edit") { _, _ ->
-                    EditingDialogFragment()
-                        .apply {
-                            arguments = Bundle().apply {
-                                putInt(CONNECTION_ID, id!!)
-                            }
-                            show(it.supportFragmentManager, "")
-                        }
-                }
-                .setPositiveButton("Delete") { _, _ -> }
-                .setNegativeButton("Cancel") { _, _ -> }
-                .create()
-
-            dialog.show()
-
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener { view ->
-                if (id != null) {
-                    delete(id, view.context)
-                    dialog.dismiss()
-                }
+            if (id != null) {
+                setupDialog(it, id)
+            } else {
+                throw IllegalStateException("ConnectionId cannot be null")
             }
-
-            dialog
         } ?: throw IllegalStateException("Activity cannot be null")
     }
 
-    private fun delete(id: Int, context: Context) {
-        val disposable = Completable
-                .fromAction { connectionDao.delete(id) }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe {
-                    Log.d("","Deleted successfully!")
-                    Toast.makeText(context, "Deleted successfully!", Toast.LENGTH_LONG).show()
-                }
+    private fun setupDialog(fragmentActivity: FragmentActivity, connectionId: Int): AlertDialog {
+        val dialog = AlertDialog
+            .Builder(fragmentActivity)
+            .setMessage("Delete this connection?")
+            .setNeutralButton("Edit") { _, _ ->
+                EditingDialogFragment().apply {
+                        arguments = Bundle().apply { putInt(CONNECTION_ID, connectionId) }
+                        show(fragmentActivity.supportFragmentManager, "")
+                    }
+            }
+            .setPositiveButton("Delete") { _, _ -> }
+            .setNegativeButton("Cancel") { _, _ -> }
+            .create()
 
-        compositeDisposable.add(disposable)
-    }
+        dialog.show()
 
-    override fun onDestroy() {
-        super.onDestroy()
-        compositeDisposable.dispose()
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            applicationViewModel.delete(connectionId)
+            dialog.dismiss()
+        }
+
+        return dialog
     }
 
     companion object {

@@ -1,20 +1,23 @@
-package com.github.aoreshin.connectivity
+package com.github.aoreshin.connectivity.viewmodels
 
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.github.aoreshin.connectivity.RetrofitService
 import com.github.aoreshin.connectivity.room.Connection
 import com.github.aoreshin.connectivity.room.ConnectionDao
+import io.reactivex.Completable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import javax.inject.Inject
 
-class ConnectionsViewModel @Inject constructor(
+class ApplicationViewModel @Inject constructor(
     private val connectionDao: ConnectionDao,
-    private val retrofitService: RetrofitService) : ViewModel() {
+    private val retrofitService: RetrofitService
+) : ViewModel() {
 
     private val compositeDisposable: CompositeDisposable = CompositeDisposable()
 
@@ -29,10 +32,44 @@ class ConnectionsViewModel @Inject constructor(
     }
 
     fun loadConnections() {
-        val disposable = connectionDao.all()
+        val disposable = connectionDao
+            .all()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe { sendRequests(it) }
+
+        compositeDisposable.add(disposable)
+    }
+
+    fun addConnection(connection: Connection) {
+        val disposable = Completable
+            .fromAction { connectionDao.insert(connection) }
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe()
+
+        compositeDisposable.add(disposable)
+    }
+
+    fun findConnection(id: Int): LiveData<Connection> {
+        return connectionDao.find(id)
+    }
+
+    fun insert(connection: Connection) {
+        val disposable = Completable.fromAction { connectionDao.insert(connection) }
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe()
+
+        compositeDisposable.add(disposable)
+    }
+
+    fun delete(id: Int) {
+        val disposable = Completable
+            .fromAction { connectionDao.delete(id) }
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe()
 
         compositeDisposable.add(disposable)
     }

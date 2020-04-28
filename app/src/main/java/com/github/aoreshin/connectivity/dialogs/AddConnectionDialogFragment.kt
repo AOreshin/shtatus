@@ -1,40 +1,31 @@
 package com.github.aoreshin.connectivity.dialogs
 
 import android.app.Dialog
-import android.content.Intent
-import android.os.AsyncTask
 import android.os.Bundle
 import android.util.Patterns
 import android.view.View
 import android.widget.EditText
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
-import com.github.aoreshin.connectivity.MainActivity
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.ViewModelProvider
 import com.github.aoreshin.connectivity.R
 import com.github.aoreshin.connectivity.dagger.ConnectivityApplication
 import com.github.aoreshin.connectivity.room.Connection
-import com.github.aoreshin.connectivity.room.ConnectionDao
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import io.reactivex.Completable
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
+import com.github.aoreshin.connectivity.viewmodels.ApplicationViewModel
 import javax.inject.Inject
 
 class AddConnectionDialogFragment : DialogFragment() {
-    private val compositeDisposable = CompositeDisposable()
+    @Inject
+    lateinit var viewModelFactory: ViewModelProvider.Factory
 
     private lateinit var descriptionEt: EditText
     private lateinit var urlEt: EditText
-
-    @Inject
-    lateinit var connectionDao: ConnectionDao
+    private lateinit var applicationViewModel: ApplicationViewModel
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         return activity?.let {
             val application = it.application as ConnectivityApplication
-
             application.appComponent.inject(this)
 
             val view = requireActivity()
@@ -43,40 +34,33 @@ class AddConnectionDialogFragment : DialogFragment() {
 
             bindViews(view)
 
-            val builder = AlertDialog.Builder(it)
+            val viewModelProvider = ViewModelProvider(this, viewModelFactory)
+            applicationViewModel = viewModelProvider.get(ApplicationViewModel::class.java)
 
-            val dialog = builder
-                .setMessage("Add connection")
-                .setView(view)
-                .setPositiveButton("Add") { _, _ -> }
-                .setNegativeButton("Cancel") { _, _ -> }
-                .create()
-
-            dialog.show()
-
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                if (validateInputs()) {
-                    addConnection(getConnection())
-                    dialog.dismiss()
-                }
-            }
-
-            dialog
+            setupDialog(it, view)
         } ?: throw IllegalStateException("Activity cannot be null")
     }
 
-    private fun addConnection(connection: Connection) {
-        val disposable = Completable
-            .fromAction { connectionDao.insert(connection) }
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                Toast.makeText(activity, "Connection added successfully!", Toast.LENGTH_LONG).show()
-            }, {
-                Toast.makeText(activity, it.message, Toast.LENGTH_SHORT).show()
-            })
+    private fun setupDialog(fragmentActivity: FragmentActivity, view: View): AlertDialog {
+        val builder = AlertDialog.Builder(fragmentActivity)
 
-        compositeDisposable.add(disposable)
+        val dialog = builder
+            .setMessage("Add connection")
+            .setView(view)
+            .setPositiveButton("Add") { _, _ -> }
+            .setNegativeButton("Cancel") { _, _ -> }
+            .create()
+
+        dialog.show()
+
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            if (validateInputs()) {
+                applicationViewModel.addConnection(getConnection())
+                dialog.dismiss()
+            }
+        }
+
+        return dialog
     }
 
     private fun bindViews(view: View) {
@@ -101,11 +85,6 @@ class AddConnectionDialogFragment : DialogFragment() {
         }
 
         return result
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        compositeDisposable.dispose()
     }
 
     private fun getConnection() : Connection {

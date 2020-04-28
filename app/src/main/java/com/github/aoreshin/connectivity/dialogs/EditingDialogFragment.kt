@@ -1,96 +1,82 @@
 package com.github.aoreshin.connectivity.dialogs
 
 import android.app.Dialog
-import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.util.Patterns
 import android.view.View
 import android.widget.EditText
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import com.github.aoreshin.connectivity.R
 import com.github.aoreshin.connectivity.dagger.ConnectivityApplication
 import com.github.aoreshin.connectivity.room.Connection
-import com.github.aoreshin.connectivity.room.ConnectionDao
-import io.reactivex.Completable
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
+import com.github.aoreshin.connectivity.viewmodels.ApplicationViewModel
 import javax.inject.Inject
 
 class EditingDialogFragment: DialogFragment() {
-    private val compositeDisposable = CompositeDisposable()
+    @Inject
+    lateinit var viewModelFactory: ViewModelProvider.Factory
 
     private lateinit var descriptionEt: EditText
     private lateinit var urlEt: EditText
-
-    @Inject
-    lateinit var connectionDao: ConnectionDao
+    private lateinit var applicationViewModel: ApplicationViewModel
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         return activity?.let {
             val application = it.application as ConnectivityApplication
-
             application.appComponent.inject(this)
 
             val view = requireActivity()
                 .layoutInflater
                 .inflate(R.layout.fragment_add_connection, null)
 
-            val id = arguments?.getInt(DeletingDialogFragment.CONNECTION_ID)
-
             bindViews(view)
 
-            connectionDao
-                .find(id!!)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { populateData(it) }
+            val viewModelProvider = ViewModelProvider(this, viewModelFactory)
+            applicationViewModel = viewModelProvider.get(ApplicationViewModel::class.java)
 
-            val dialog = AlertDialog
-                .Builder(it)
-                .setView(view)
-                .setMessage("Edit connection")
-                .setPositiveButton("Apply") { _, _ -> }
-                .setNegativeButton("Cancel") { _, _ -> }
-                .create()
+            val id = arguments?.getInt(DeletingDialogFragment.CONNECTION_ID)
 
-            dialog.show()
-
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener { view ->
-                if (validateInputs()) {
-                    insert(id, view.context)
-                    dialog.dismiss()
-                }
+            if (id != null) {
+                setupDialog(it, id, view)
+            } else {
+                throw IllegalStateException("ConnectionId cannot be null")
             }
-
-            dialog
         } ?: throw IllegalStateException("Activity cannot be null")
+    }
+
+    private fun setupDialog(fragmentActivity: FragmentActivity, connectionId: Int, view: View): AlertDialog {
+        val dialog = AlertDialog
+            .Builder(fragmentActivity)
+            .setView(view)
+            .setMessage("Edit connection")
+            .setPositiveButton("Apply") { _, _ -> }
+            .setNegativeButton("Cancel") { _, _ -> }
+            .create()
+
+        applicationViewModel.findConnection(connectionId)
+            .observe(this, Observer(::populateData))
+
+        dialog.show()
+
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            if (validateInputs()) {
+                val connection =
+                    Connection(connectionId, descriptionEt.text.toString(), urlEt.text.toString())
+                applicationViewModel.insert(connection)
+                dialog.dismiss()
+            }
+        }
+
+        return dialog
     }
 
     private fun populateData(connection: Connection) {
         descriptionEt.setText(connection.description)
         urlEt.setText(connection.url)
-    }
-
-    private fun insert(id: Int, context: Context) {
-        val connection = Connection(
-            id,
-            descriptionEt.text.toString(),
-            urlEt.text.toString()
-        )
-
-        val disposable = Completable.fromAction { connectionDao.insert(connection) }
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe {
-                Log.d("EditingDialogFragment","Edited successfully!")
-                Toast.makeText(context, "Edited successfully!", Toast.LENGTH_SHORT).show()
-            }
-
-        compositeDisposable.add(disposable)
     }
 
     private fun bindViews(view: View) {
@@ -115,10 +101,5 @@ class EditingDialogFragment: DialogFragment() {
         }
 
         return result
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        compositeDisposable.dispose()
     }
 }

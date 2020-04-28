@@ -19,6 +19,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.github.aoreshin.connectivity.dagger.ConnectivityApplication
 import com.github.aoreshin.connectivity.dialogs.DeletingDialogFragment
 import com.github.aoreshin.connectivity.room.Connection
+import com.github.aoreshin.connectivity.viewmodels.ApplicationViewModel
 import io.reactivex.plugins.RxJavaPlugins
 import java.util.function.Predicate
 import javax.inject.Inject
@@ -33,29 +34,27 @@ class ConnectionListFragment : Fragment() {
     private lateinit var nameEt: EditText
     private lateinit var urlEt: EditText
     private lateinit var statusCodeEt: EditText
-
-    private lateinit var connectionsViewModel: ConnectionsViewModel
+    private lateinit var applicationViewModel: ApplicationViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater
-            .inflate(R.layout.fragment_connection_list, container, false)
+        val view = inflater.inflate(R.layout.fragment_connection_list, container, false)
 
         val application = (activity!!.application as ConnectivityApplication)
         application.appComponent.inject(this)
 
         val viewModelProvider = ViewModelProvider(this, viewModelFactory)
-        connectionsViewModel = viewModelProvider.get(ConnectionsViewModel::class.java)
+        applicationViewModel = viewModelProvider.get(ApplicationViewModel::class.java)
 
         bindViews(view)
         setupListeners()
 
         if (savedInstanceState != null) {
-            nameEt.setText(savedInstanceState.getString("nameEt", ""))
-            urlEt.setText(savedInstanceState.getString("urlEt", ""))
-            statusCodeEt.setText(savedInstanceState.getString("statusCodeEt", ""))
+            nameEt.setText(savedInstanceState.getString(NAME, ""))
+            urlEt.setText(savedInstanceState.getString(URL, ""))
+            statusCodeEt.setText(savedInstanceState.getString(STATUS, ""))
         }
 
         update()
@@ -64,11 +63,11 @@ class ConnectionListFragment : Fragment() {
     }
 
     private fun update() {
-        connectionsViewModel.getConnections().observe(viewLifecycleOwner, Observer(::updateTable))
+        refreshLayout.isRefreshing = true
+        applicationViewModel.getConnections().observe(viewLifecycleOwner, Observer(::updateTable))
     }
 
     private fun updateTable(connections: List<Connection>?) {
-        refreshLayout.isRefreshing = true
 
         clearTable()
 
@@ -98,9 +97,7 @@ class ConnectionListFragment : Fragment() {
     }
 
     private fun setupListeners() {
-        refreshLayout.setOnRefreshListener {
-            connectionsViewModel.loadConnections()
-        }
+        refreshLayout.setOnRefreshListener { applicationViewModel.loadConnections() }
         nameEt.addTextChangedListener { update() }
         urlEt.addTextChangedListener { update() }
         statusCodeEt.addTextChangedListener { update() }
@@ -140,8 +137,7 @@ class ConnectionListFragment : Fragment() {
             isLongClickable = true
             setOnLongClickListener {
                 activity?.supportFragmentManager?.let {
-                    DeletingDialogFragment()
-                        .apply {
+                    DeletingDialogFragment().apply {
                         arguments = Bundle().apply {
                             putInt(DeletingDialogFragment.CONNECTION_ID, connection.id!!)
                         }
@@ -156,21 +152,23 @@ class ConnectionListFragment : Fragment() {
     }
 
     private fun createTextView(text: String?): TextView {
-        return TextView(layoutInflater.context)
-            .apply {
+        return TextView(layoutInflater.context).apply {
                 setText(text)
-                layoutParams = TableRow.LayoutParams(
-                    0,
-                    TableRow.LayoutParams.WRAP_CONTENT,
-                    1f
-                )
+                layoutParams = TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT,
+                    1f)
                 gravity = Gravity.CENTER
             }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        outState.putString("nameEt", nameEt.text.toString())
-        outState.putString("urlEt", urlEt.text.toString())
-        outState.putString("statusCodeEt", statusCodeEt.text.toString())
+        outState.putString(NAME, nameEt.text.toString())
+        outState.putString(URL, urlEt.text.toString())
+        outState.putString(STATUS, statusCodeEt.text.toString())
+    }
+
+    companion object {
+        private const val NAME = "nameEt"
+        private const val URL = "urlEt"
+        private const val STATUS = "statusCodeEt"
     }
 }
