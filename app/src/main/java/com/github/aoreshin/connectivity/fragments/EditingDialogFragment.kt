@@ -1,4 +1,4 @@
-package com.github.aoreshin.connectivity.dialogs
+package com.github.aoreshin.connectivity.fragments
 
 import android.app.Dialog
 import android.os.Bundle
@@ -8,20 +8,21 @@ import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.github.aoreshin.connectivity.R
-import com.github.aoreshin.connectivity.dagger.ConnectivityApplication
+import com.github.aoreshin.connectivity.ConnectivityApplication
 import com.github.aoreshin.connectivity.room.Connection
-import com.github.aoreshin.connectivity.viewmodels.ApplicationViewModel
+import com.github.aoreshin.connectivity.viewmodels.EditingViewModel
 import javax.inject.Inject
 
-class AddConnectionDialogFragment : DialogFragment() {
+class EditingDialogFragment: DialogFragment() {
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
 
     private lateinit var descriptionEt: EditText
     private lateinit var urlEt: EditText
-    private lateinit var applicationViewModel: ApplicationViewModel
+    private lateinit var viewModel: EditingViewModel
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         return activity?.let {
@@ -35,32 +36,46 @@ class AddConnectionDialogFragment : DialogFragment() {
             bindViews(view)
 
             val viewModelProvider = ViewModelProvider(this, viewModelFactory)
-            applicationViewModel = viewModelProvider.get(ApplicationViewModel::class.java)
+            viewModel = viewModelProvider.get(EditingViewModel::class.java)
 
-            setupDialog(it, view)
+            val id = arguments?.getInt(DeletingDialogFragment.CONNECTION_ID)
+
+            if (id != null) {
+                setupDialog(it, id, view)
+            } else {
+                throw IllegalStateException("ConnectionId cannot be null")
+            }
         } ?: throw IllegalStateException("Activity cannot be null")
     }
 
-    private fun setupDialog(fragmentActivity: FragmentActivity, view: View): AlertDialog {
-        val builder = AlertDialog.Builder(fragmentActivity)
-
-        val dialog = builder
-            .setMessage("Add connection")
+    private fun setupDialog(fragmentActivity: FragmentActivity, connectionId: Int, view: View): AlertDialog {
+        val dialog = AlertDialog
+            .Builder(fragmentActivity)
             .setView(view)
-            .setPositiveButton("Add") { _, _ -> }
+            .setMessage("Edit connection")
+            .setPositiveButton("Apply") { _, _ -> }
             .setNegativeButton("Cancel") { _, _ -> }
             .create()
+
+        viewModel.find(connectionId).observe(this, Observer(::populateData))
 
         dialog.show()
 
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
             if (validateInputs()) {
-                applicationViewModel.addConnection(getConnection())
+                val connection =
+                    Connection(connectionId, descriptionEt.text.toString(), urlEt.text.toString())
+                viewModel.save(connection)
                 dialog.dismiss()
             }
         }
 
         return dialog
+    }
+
+    private fun populateData(connection: Connection) {
+        descriptionEt.setText(connection.description)
+        urlEt.setText(connection.url)
     }
 
     private fun bindViews(view: View) {
@@ -85,9 +100,5 @@ class AddConnectionDialogFragment : DialogFragment() {
         }
 
         return result
-    }
-
-    private fun getConnection() : Connection {
-        return Connection(null, descriptionEt.text.toString(), urlEt.text.toString())
     }
 }

@@ -3,18 +3,9 @@ package com.github.aoreshin.connectivity
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.widget.addTextChangedListener
-import com.github.aoreshin.connectivity.dialogs.AddConnectionDialogFragment
-import com.github.aoreshin.connectivity.room.Connection
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import io.reactivex.Completable
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
-import kotlinx.android.synthetic.main.fragment_connection_list.*
-import java.util.concurrent.TimeUnit
-import java.util.function.Predicate
+import com.github.aoreshin.connectivity.fragments.AddingDialogFragment
+import com.github.aoreshin.connectivity.fragments.ConnectionListFragment
 
 
 class MainActivity : AppCompatActivity() {
@@ -36,7 +27,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
         R.id.action_add -> {
-            AddConnectionDialogFragment().show(supportFragmentManager, "")
+            AddingDialogFragment().show(supportFragmentManager, "")
             true
         }
 

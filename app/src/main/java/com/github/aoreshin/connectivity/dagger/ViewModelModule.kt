@@ -2,10 +2,7 @@ package com.github.aoreshin.connectivity.dagger
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.github.aoreshin.connectivity.viewmodels.AddConnectionDialogFragmentViewModel
-import com.github.aoreshin.connectivity.viewmodels.ApplicationViewModel
-import com.github.aoreshin.connectivity.viewmodels.ViewModelFactory
-import com.github.aoreshin.connectivity.viewmodels.ViewModelKey
+import com.github.aoreshin.connectivity.viewmodels.*
 import dagger.Binds
 import dagger.Module
 import dagger.multibindings.IntoMap
@@ -17,11 +14,21 @@ abstract class ViewModelModule {
 
     @Binds
     @IntoMap
-    @ViewModelKey(ApplicationViewModel::class)
-    internal abstract fun connectionsViewModel(viewModel: ApplicationViewModel): ViewModel
+    @ViewModelKey(ConnectionListViewModel::class)
+    internal abstract fun connectionListViewModel(viewModel: ConnectionListViewModel): ViewModel
 
     @Binds
     @IntoMap
-    @ViewModelKey(AddConnectionDialogFragmentViewModel::class)
-    internal abstract fun addFragmentViewModel(viewModel: AddConnectionDialogFragmentViewModel): ViewModel
+    @ViewModelKey(AddingViewModel::class)
+    internal abstract fun addingViewModel(viewModel: AddingViewModel): ViewModel
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(EditingViewModel::class)
+    internal abstract fun editingViewModel(viewModel: EditingViewModel): ViewModel
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(DeletingViewModel::class)
+    internal abstract fun deletingViewModel(viewModel: DeletingViewModel): ViewModel
 }

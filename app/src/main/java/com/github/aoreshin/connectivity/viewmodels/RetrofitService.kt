@@ -1,4 +1,4 @@
-package com.github.aoreshin.connectivity
+package com.github.aoreshin.connectivity.viewmodels
 
 import io.reactivex.Single
 import okhttp3.ResponseBody

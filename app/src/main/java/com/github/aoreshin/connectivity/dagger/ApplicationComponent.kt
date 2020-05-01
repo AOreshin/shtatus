@@ -1,20 +1,20 @@
 package com.github.aoreshin.connectivity.dagger
 
 import android.app.Application
-import com.github.aoreshin.connectivity.ConnectionListFragment
-import com.github.aoreshin.connectivity.RetrofitService
-import com.github.aoreshin.connectivity.dialogs.AddConnectionDialogFragment
-import com.github.aoreshin.connectivity.dialogs.DeletingDialogFragment
-import com.github.aoreshin.connectivity.dialogs.EditingDialogFragment
+import com.github.aoreshin.connectivity.fragments.AddingDialogFragment
+import com.github.aoreshin.connectivity.fragments.ConnectionListFragment
+import com.github.aoreshin.connectivity.fragments.DeletingDialogFragment
+import com.github.aoreshin.connectivity.fragments.EditingDialogFragment
 import com.github.aoreshin.connectivity.room.ConnectionDao
 import com.github.aoreshin.connectivity.room.ConnectivityDatabase
+import com.github.aoreshin.connectivity.viewmodels.RetrofitService
 import dagger.Component
 import javax.inject.Singleton
 
 @Singleton
 @Component(modules = [AppModule::class, RoomModule::class, RetrofitModule::class, ViewModelModule::class])
 interface ApplicationComponent {
-    fun inject(activity: AddConnectionDialogFragment)
+    fun inject(activity: AddingDialogFragment)
     fun inject(fragment: ConnectionListFragment)
     fun inject(fragment: DeletingDialogFragment)
     fun inject(fragment: EditingDialogFragment)
