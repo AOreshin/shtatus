@@ -59,6 +59,7 @@ class ConnectionListFragment : Fragment() {
                         true
                     ConnectionListViewModel.RefreshStatus.READY -> refreshLayout.isRefreshing =
                         false
+                    else -> throw IllegalStateException("No such status $status")
                 }
             })
 
@@ -78,6 +79,7 @@ class ConnectionListFragment : Fragment() {
                         tableLayout.removeAllViewsInLayout()
                         tableLayout.addView(createTextView("Add some connections already!"))
                     }
+                    else -> throw IllegalStateException("No such status $status")
                 }
             })
         }
