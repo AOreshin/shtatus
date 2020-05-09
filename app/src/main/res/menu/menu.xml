@@ -4,6 +4,6 @@
     <item
         android:id="@+id/action_add"
         android:icon="@drawable/ic_add_24px"
-        android:title="@string/add_connection"
+        android:title="@string/title_add_connection"
         app:showAsAction="ifRoom"/>
 </menu>

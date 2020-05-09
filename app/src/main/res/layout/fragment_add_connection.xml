@@ -13,24 +13,21 @@
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent">
-
         <TableRow>
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:text="@string/description" />
-
+                android:text="@string/name" />
             <EditText
                 android:background="@android:color/transparent"
                 android:id="@+id/add_connection_description_et"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
-                android:hint="@string/enter_description_hint" />
+                android:hint="@string/hint_enter_name" />
         </TableRow>
-
         <TableRow>
             <TextView
                 android:layout_width="0dp"
@@ -38,7 +35,6 @@
                 android:layout_weight="1"
                 android:gravity="center"
                 android:text="@string/url" />
-
             <EditText
                 android:background="@android:color/transparent"
                 android:id="@+id/add_connection_url_et"
@@ -47,7 +43,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
                 android:text="@string/default_url"
-                android:hint="@string/enter_url_hint" />
+                android:hint="@string/hint_enter_url" />
         </TableRow>
     </TableLayout>
 </LinearLayout>

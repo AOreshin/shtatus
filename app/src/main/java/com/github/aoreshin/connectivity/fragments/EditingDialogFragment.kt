@@ -43,18 +43,18 @@ class EditingDialogFragment: DialogFragment() {
             if (id != null) {
                 setupDialog(it, id, view)
             } else {
-                throw IllegalStateException("ConnectionId cannot be null")
+                throw IllegalStateException(getString(R.string.error_empty_connection_id))
             }
-        } ?: throw IllegalStateException("Activity cannot be null")
+        } ?: throw IllegalStateException(getString(R.string.error_null_activity))
     }
 
     private fun setupDialog(fragmentActivity: FragmentActivity, connectionId: Int, view: View): AlertDialog {
         val dialog = AlertDialog
             .Builder(fragmentActivity)
             .setView(view)
-            .setMessage("Edit connection")
-            .setPositiveButton("Apply") { _, _ -> }
-            .setNegativeButton("Cancel") { _, _ -> }
+            .setMessage(getString(R.string.title_edit_connection))
+            .setPositiveButton(getString(R.string.button_apply)) { _, _ -> }
+            .setNegativeButton(getString(R.string.button_cancel)) { _, _ -> }
             .create()
 
         viewModel.find(connectionId).observe(this, Observer(::populateData))
@@ -87,15 +87,15 @@ class EditingDialogFragment: DialogFragment() {
         var result = true
 
         if (descriptionEt.text.isEmpty()) {
-            descriptionEt.error = "Description should not be empty"
+            descriptionEt.error = getString(R.string.error_empty_name)
             result = false
         }
 
         if (urlEt.text.isEmpty()) {
-            urlEt.error = "URL should not be empty"
+            urlEt.error = getString(R.string.error_empty_url)
             result = false
         } else if (!Patterns.WEB_URL.matcher(urlEt.text).matches())  {
-            urlEt.error = "URL is not valid"
+            urlEt.error = getString(R.string.error_invalid_url)
             result = false
         }
 

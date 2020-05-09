@@ -38,17 +38,17 @@ class AddingDialogFragment : DialogFragment() {
             viewModel = viewModelProvider.get(AddingViewModel::class.java)
 
             setupDialog(it, view)
-        } ?: throw IllegalStateException("Activity cannot be null")
+        } ?: throw IllegalStateException(getString(R.string.error_null_activity))
     }
 
     private fun setupDialog(fragmentActivity: FragmentActivity, view: View): AlertDialog {
         val builder = AlertDialog.Builder(fragmentActivity)
 
         val dialog = builder
-            .setMessage("Add connection")
+            .setMessage(getString(R.string.title_add_connection))
             .setView(view)
-            .setPositiveButton("Add") { _, _ -> }
-            .setNegativeButton("Cancel") { _, _ -> }
+            .setPositiveButton(getString(R.string.button_add)) { _, _ -> }
+            .setNegativeButton(getString(R.string.button_cancel)) { _, _ -> }
             .create()
 
         dialog.show()
@@ -72,15 +72,15 @@ class AddingDialogFragment : DialogFragment() {
         var result = true
 
         if (descriptionEt.text.isEmpty()) {
-            descriptionEt.error = "Description should not be empty"
+            descriptionEt.error = getString(R.string.error_empty_name)
             result = false
         }
 
         if (urlEt.text.isEmpty()) {
-            urlEt.error = "URL should not be empty"
+            urlEt.error = getString(R.string.error_empty_url)
             result = false
         } else if (!Patterns.WEB_URL.matcher(urlEt.text).matches())  {
-            urlEt.error = "URL is not valid"
+            urlEt.error = getString(R.string.error_invalid_url)
             result = false
         }
 

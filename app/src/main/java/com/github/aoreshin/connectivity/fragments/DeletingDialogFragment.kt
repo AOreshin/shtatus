@@ -7,6 +7,7 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModelProvider
 import com.github.aoreshin.connectivity.ConnectivityApplication
+import com.github.aoreshin.connectivity.R
 import com.github.aoreshin.connectivity.viewmodels.DeletingViewModel
 import javax.inject.Inject
 
@@ -29,23 +30,23 @@ class DeletingDialogFragment: DialogFragment() {
             if (id != null) {
                 setupDialog(it, id)
             } else {
-                throw IllegalStateException("ConnectionId cannot be null")
+                throw IllegalStateException(getString(R.string.error_empty_connection_id))
             }
-        } ?: throw IllegalStateException("Activity cannot be null")
+        } ?: throw IllegalStateException(getString(R.string.error_null_activity))
     }
 
     private fun setupDialog(fragmentActivity: FragmentActivity, connectionId: Int): AlertDialog {
         val dialog = AlertDialog
             .Builder(fragmentActivity)
-            .setMessage("Delete this connection?")
-            .setNeutralButton("Edit") { _, _ ->
+            .setMessage(getString(R.string.title_delete_connection))
+            .setNeutralButton(getString(R.string.button_edit)) { _, _ ->
                 EditingDialogFragment().apply {
                         arguments = Bundle().apply { putInt(CONNECTION_ID, connectionId) }
                         show(fragmentActivity.supportFragmentManager, "")
                     }
             }
-            .setPositiveButton("Delete") { _, _ -> }
-            .setNegativeButton("Cancel") { _, _ -> }
+            .setPositiveButton(getString(R.string.button_delete)) { _, _ -> }
+            .setNegativeButton(getString(R.string.button_cancel)) { _, _ -> }
             .create()
 
         dialog.show()

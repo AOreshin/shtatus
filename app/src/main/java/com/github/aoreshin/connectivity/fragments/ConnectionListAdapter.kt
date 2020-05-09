@@ -46,7 +46,7 @@ class ConnectionListAdapter(private val supportFragmentManager: FragmentManager,
                                 connection.id!!
                             )
                         }
-                        show(supportFragmentManager, "Deleting")
+                        show(supportFragmentManager, "")
                     }
                     true
                 }

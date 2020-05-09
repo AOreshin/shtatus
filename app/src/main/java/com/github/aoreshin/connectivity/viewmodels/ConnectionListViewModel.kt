@@ -18,9 +18,12 @@ class ConnectionListViewModel @Inject constructor(
     private val compositeDisposable = CompositeDisposable()
 
     private val connections = connectionRepository.allConnections()
-    val mediatorConnection = MediatorLiveData<List<Connection>>()
 
-    val statusLiveData = MutableLiveData(TableStatus.SHOW)
+    val mediatorConnection = MediatorLiveData<List<Connection>>().also {
+        it.value = connections.value
+    }
+
+    val statusLiveData = MutableLiveData(TableStatus.OK)
     val refreshLiveData = MutableLiveData(RefreshStatus.READY)
 
     val nameLiveData = MutableLiveData<String>()
@@ -42,15 +45,12 @@ class ConnectionListViewModel @Inject constructor(
         if (connections.value.isNullOrEmpty()) {
             statusLiveData.value = TableStatus.EMPTY
         } else {
-            val filtered =
-                connections.value?.filter { connection -> getPredicate().test(connection) }
+            mediatorConnection.value = connections.value?.filter { connection -> getPredicate().test(connection) }
 
-            if (filtered.isNullOrEmpty()) {
+            if (mediatorConnection.value.isNullOrEmpty()) {
                 statusLiveData.value = TableStatus.NO_MATCHES
             } else {
-                mediatorConnection.value =
-                    connections.value?.filter { connection -> getPredicate().test(connection) }
-                statusLiveData.value = TableStatus.SHOW
+                statusLiveData.value = TableStatus.OK
             }
         }
     }
@@ -79,13 +79,8 @@ class ConnectionListViewModel @Inject constructor(
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doFinally { refreshLiveData.value = RefreshStatus.READY }
-                .subscribe({
-                    Log.d(
-                        "ApplicationViewModel", "Request sending is finished"
-                    )
-                }, {
-                    Log.d("ApplicationViewModel", it.message!!)
-                })
+                .subscribe({ Log.d("ApplicationViewModel", "Request sending is finished") },
+                    { Log.d("ApplicationViewModel", it.message!!) })
 
             compositeDisposable.add(disposable)
         } else {
@@ -115,7 +110,7 @@ class ConnectionListViewModel @Inject constructor(
     }
 
     enum class TableStatus {
-        SHOW,
+        OK,
         EMPTY,
         NO_MATCHES
     }
