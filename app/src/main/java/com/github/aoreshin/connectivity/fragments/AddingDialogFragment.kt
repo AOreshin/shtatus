@@ -9,8 +9,8 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModelProvider
-import com.github.aoreshin.connectivity.R
 import com.github.aoreshin.connectivity.ConnectivityApplication
+import com.github.aoreshin.connectivity.R
 import com.github.aoreshin.connectivity.room.Connection
 import com.github.aoreshin.connectivity.viewmodels.AddingViewModel
 import javax.inject.Inject
@@ -88,6 +88,6 @@ class AddingDialogFragment : DialogFragment() {
     }
 
     private fun getConnection() : Connection {
-        return Connection(null, descriptionEt.text.toString(), urlEt.text.toString())
+        return Connection(null, descriptionEt.text.toString(), urlEt.text.toString(), "")
     }
 }

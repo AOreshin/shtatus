@@ -60,11 +60,19 @@ class ConnectionListViewModel @Inject constructor(
 
         if (!connections.value.isNullOrEmpty()) {
             val singles = connections.value?.map { connection ->
+                val id = connection.id
+                val description = connection.description
+                val url = connection.url
+                var message = ""
+
                 connectionRepository
-                    .sendRequest(connection.url)
-                    .doOnSuccess { connection.actualStatusCode = it.code().toString() }
-                    .doOnError { connection.actualStatusCode = it.message!! }
-                    .doFinally { connectionRepository.insert(connection) }
+                    .sendRequest(url)
+                    .doOnSuccess { message = it.code().toString() }
+                    .doOnError { message = it.message!! }
+                    .doFinally {
+                        val result = Connection(id, description, url, message)
+                        connectionRepository.insert(result)
+                    }
             }
 
             val disposable = Single.mergeDelayError(singles)

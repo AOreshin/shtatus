@@ -10,8 +10,8 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import com.github.aoreshin.connectivity.R
 import com.github.aoreshin.connectivity.ConnectivityApplication
+import com.github.aoreshin.connectivity.R
 import com.github.aoreshin.connectivity.room.Connection
 import com.github.aoreshin.connectivity.viewmodels.EditingViewModel
 import javax.inject.Inject
@@ -64,7 +64,7 @@ class EditingDialogFragment: DialogFragment() {
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
             if (validateInputs()) {
                 val connection =
-                    Connection(connectionId, descriptionEt.text.toString(), urlEt.text.toString())
+                    Connection(connectionId, descriptionEt.text.toString(), urlEt.text.toString(), "")
                 viewModel.save(connection)
                 dialog.dismiss()
             }

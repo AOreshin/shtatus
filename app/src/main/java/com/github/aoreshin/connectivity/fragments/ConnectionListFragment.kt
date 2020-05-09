@@ -1,18 +1,16 @@
 package com.github.aoreshin.connectivity.fragments
 
 import android.os.Bundle
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
-import android.widget.TableLayout
-import android.widget.TableRow
-import android.widget.TextView
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.github.aoreshin.connectivity.ConnectivityApplication
 import com.github.aoreshin.connectivity.R
@@ -20,17 +18,21 @@ import com.github.aoreshin.connectivity.room.Connection
 import com.github.aoreshin.connectivity.viewmodels.ConnectionListViewModel
 import javax.inject.Inject
 
-
 class ConnectionListFragment : Fragment() {
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
 
-    private lateinit var tableLayout: TableLayout
     private lateinit var refreshLayout: SwipeRefreshLayout
+
     private lateinit var nameEt: EditText
     private lateinit var urlEt: EditText
     private lateinit var statusCodeEt: EditText
+
     private lateinit var viewModel: ConnectionListViewModel
+
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var viewAdapter: ConnectionListAdapter
+//    private lateinit var viewAdapter: ConnectionQueuedAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -48,6 +50,7 @@ class ConnectionListFragment : Fragment() {
         setupObservers()
         setupListeners()
         addFilterValues()
+        setupRecyclerView()
         return view
     }
 
@@ -68,20 +71,25 @@ class ConnectionListFragment : Fragment() {
             statusLiveData.observe(viewLifecycleOwner, Observer { status ->
                 when (status) {
                     ConnectionListViewModel.TableStatus.SHOW -> {
-                        tableLayout.removeAllViewsInLayout()
-                        viewModel.mediatorConnection.value?.forEach { createRow(it) }
+                        viewAdapter.submitList(mediatorConnection.value!!)
                     }
                     ConnectionListViewModel.TableStatus.NO_MATCHES -> {
-                        tableLayout.removeAllViewsInLayout()
-                        tableLayout.addView(createTextView("No matches!"))
+                        viewAdapter.submitList(listOf(Connection(null, "", "No matches!", "")))
                     }
                     ConnectionListViewModel.TableStatus.EMPTY -> {
-                        tableLayout.removeAllViewsInLayout()
-                        tableLayout.addView(createTextView("Add some connections already!"))
+                        viewAdapter.submitList(listOf(Connection(null, "", "Add some connections already!", "")))
                     }
                     else -> throw IllegalStateException("No such status $status")
                 }
             })
+        }
+    }
+
+    private fun setupRecyclerView() {
+        viewAdapter = ConnectionListAdapter(parentFragmentManager, ConnectionItemCallback())
+        recyclerView.apply {
+            layoutManager = LinearLayoutManager(context)
+            adapter = viewAdapter
         }
     }
 
@@ -95,7 +103,7 @@ class ConnectionListFragment : Fragment() {
 
     private fun bindViews(view: View) {
         with(view) {
-            tableLayout = findViewById(R.id.table_layout)
+            recyclerView = findViewById(R.id.recycler_view)
             refreshLayout = findViewById(R.id.refresher)
             nameEt = findViewById(R.id.nameEt)
             urlEt = findViewById(R.id.urlEt)
@@ -110,50 +118,5 @@ class ConnectionListFragment : Fragment() {
             urlEt.addTextChangedListener { urlLiveData.value = it.toString() }
             statusCodeEt.addTextChangedListener { actualStatusLiveData.value = it.toString() }
         }
-    }
-
-    private fun createRow(connection: Connection) {
-        val tableRow = TableRow(layoutInflater.context)
-
-        val nameView = createTextView(connection.description)
-        val urlView = createTextView(connection.url)
-        val actualStatusCodeView = createTextView(connection.actualStatusCode)
-
-        tableRow.apply {
-            addView(nameView)
-            addView(urlView)
-            addView(actualStatusCodeView)
-
-//            startAnimation(AnimationUtils.loadAnimation(activity, android.R.anim.fade_in));
-//            visibility = View.VISIBLE;
-
-            launchFragmentOnLongClick(connection)
-        }
-
-        tableLayout.addView(tableRow)
-    }
-
-    private fun TableRow.launchFragmentOnLongClick(connection: Connection) {
-        isLongClickable = true
-
-        setOnLongClickListener {
-            activity?.supportFragmentManager?.let {
-                DeletingDialogFragment().apply {
-                    arguments = Bundle().apply {
-                        putInt(DeletingDialogFragment.CONNECTION_ID, connection.id!!)
-                    }
-                    show(it, "Deleting")
-                }
-            }
-            true
-        }
-    }
-
-    private fun createTextView(text: String?): TextView {
-        return TextView(layoutInflater.context).apply {
-                setText(text)
-                layoutParams = TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f)
-                gravity = Gravity.CENTER
-            }
     }
 }
