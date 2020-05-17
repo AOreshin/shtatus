@@ -65,14 +65,8 @@ class ConnectionListFragment : Fragment() {
                 }
             })
 
-            statusLiveData.observe(viewLifecycleOwner, Observer { status ->
-                when (status) {
-                    ConnectionListViewModel.TableStatus.OK -> { }
-                    ConnectionListViewModel.TableStatus.NO_MATCHES -> { showToast(R.string.status_no_matches) }
-                    ConnectionListViewModel.TableStatus.EMPTY -> { showToast(R.string.status_no_connections) }
-                    else -> throwException(status.toString())
-                }
-            })
+            noMatchesEvent.observe(viewLifecycleOwner, Observer { showToast(R.string.status_no_matches) })
+            emptyTableEvent.observe(viewLifecycleOwner, Observer { showToast(R.string.status_no_connections) })
         }
     }
 
@@ -117,5 +111,14 @@ class ConnectionListFragment : Fragment() {
 
     private fun showToast(resourceId: Int) {
         Toast.makeText(context, getString(resourceId), Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        with(viewModel) {
+            noMatchesEvent.removeObservers(viewLifecycleOwner)
+            mediatorConnection.removeObservers(viewLifecycleOwner)
+            refreshLiveData.removeObservers(viewLifecycleOwner)
+        }
     }
 }

@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.github.aoreshin.connectivity.events.SingleLiveEvent
 import com.github.aoreshin.connectivity.room.Connection
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -11,7 +12,9 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import java.util.function.Predicate
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class ConnectionListViewModel @Inject constructor(
     private val connectionRepository: ConnectionRepository
 ) : ViewModel() {
@@ -23,8 +26,9 @@ class ConnectionListViewModel @Inject constructor(
         it.value = connections.value
     }
 
-    val statusLiveData = MutableLiveData(TableStatus.OK)
     val refreshLiveData = MutableLiveData(RefreshStatus.READY)
+    val noMatchesEvent = SingleLiveEvent<Void>()
+    val emptyTableEvent = SingleLiveEvent<Void>()
 
     val nameLiveData = MutableLiveData<String>()
     val urlLiveData = MutableLiveData<String>()
@@ -37,20 +41,16 @@ class ConnectionListViewModel @Inject constructor(
             addSource(urlLiveData) { update() }
             addSource(actualStatusLiveData) { update() }
         }
-
-        update()
     }
 
     private fun update() {
         if (connections.value.isNullOrEmpty()) {
-            statusLiveData.value = TableStatus.EMPTY
+            emptyTableEvent.call()
         } else {
             mediatorConnection.value = connections.value?.filter { connection -> getPredicate().test(connection) }
 
             if (mediatorConnection.value.isNullOrEmpty()) {
-                statusLiveData.value = TableStatus.NO_MATCHES
-            } else {
-                statusLiveData.value = TableStatus.OK
+                noMatchesEvent.call()
             }
         }
     }
@@ -107,11 +107,5 @@ class ConnectionListViewModel @Inject constructor(
     enum class RefreshStatus {
         LOADING,
         READY
-    }
-
-    enum class TableStatus {
-        OK,
-        EMPTY,
-        NO_MATCHES
     }
 }
