@@ -55,9 +55,9 @@ class ConnectionListFragment : Fragment() {
 
     private fun setupObservers() {
         with(viewModel) {
-            mediatorConnection.observe(viewLifecycleOwner, Observer { viewAdapter.submitList(it) })
+            getConnections().observe(viewLifecycleOwner, Observer { viewAdapter.submitList(it) })
 
-            refreshLiveData.observe(viewLifecycleOwner, Observer { status ->
+            getRefreshLiveData().observe(viewLifecycleOwner, Observer { status ->
                 when (status) {
                     ConnectionListViewModel.RefreshStatus.LOADING -> refreshLayout.isRefreshing = true
                     ConnectionListViewModel.RefreshStatus.READY -> refreshLayout.isRefreshing = false
@@ -65,8 +65,8 @@ class ConnectionListFragment : Fragment() {
                 }
             })
 
-            noMatchesEvent.observe(viewLifecycleOwner, Observer { showToast(R.string.status_no_matches) })
-            emptyTableEvent.observe(viewLifecycleOwner, Observer { showToast(R.string.status_no_connections) })
+            getNoMatchesEvent().observe(viewLifecycleOwner, Observer { showToast(R.string.status_no_matches) })
+            getEmptyTableEvent().observe(viewLifecycleOwner, Observer { showToast(R.string.status_no_connections) })
         }
     }
 
@@ -97,7 +97,7 @@ class ConnectionListFragment : Fragment() {
     }
 
     private fun setupListeners() {
-        with (viewModel) {
+        with(viewModel) {
             refreshLayout.setOnRefreshListener { send() }
             nameEt.addTextChangedListener { nameLiveData.value = it.toString() }
             urlEt.addTextChangedListener { urlLiveData.value = it.toString() }
@@ -116,9 +116,10 @@ class ConnectionListFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         with(viewModel) {
-            noMatchesEvent.removeObservers(viewLifecycleOwner)
-            mediatorConnection.removeObservers(viewLifecycleOwner)
-            refreshLiveData.removeObservers(viewLifecycleOwner)
+            getNoMatchesEvent().removeObservers(viewLifecycleOwner)
+            getRefreshLiveData().removeObservers(viewLifecycleOwner)
+            getEmptyTableEvent().removeObservers(viewLifecycleOwner)
+            getConnections().removeObservers(viewLifecycleOwner)
         }
     }
 }

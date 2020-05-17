@@ -1,6 +1,7 @@
 package com.github.aoreshin.connectivity.viewmodels
 
 import android.util.Log
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -22,13 +23,13 @@ class ConnectionListViewModel @Inject constructor(
 
     private val connections = connectionRepository.allConnections()
 
-    val mediatorConnection = MediatorLiveData<List<Connection>>().also {
+    private val mediatorConnection = MediatorLiveData<List<Connection>>().also {
         it.value = connections.value
     }
 
-    val refreshLiveData = MutableLiveData(RefreshStatus.READY)
-    val noMatchesEvent = SingleLiveEvent<Void>()
-    val emptyTableEvent = SingleLiveEvent<Void>()
+    private val refreshLiveData = MutableLiveData(RefreshStatus.READY)
+    private val noMatchesEvent = SingleLiveEvent<Void>()
+    private val emptyTableEvent = SingleLiveEvent<Void>()
 
     val nameLiveData = MutableLiveData<String>()
     val urlLiveData = MutableLiveData<String>()
@@ -42,6 +43,11 @@ class ConnectionListViewModel @Inject constructor(
             addSource(actualStatusLiveData) { update() }
         }
     }
+
+    fun getRefreshLiveData(): LiveData<RefreshStatus> = refreshLiveData
+    fun getNoMatchesEvent(): LiveData<Void> = noMatchesEvent
+    fun getEmptyTableEvent(): LiveData<Void> = emptyTableEvent
+    fun getConnections(): LiveData<List<Connection>> = mediatorConnection
 
     private fun update() {
         if (connections.value.isNullOrEmpty()) {
