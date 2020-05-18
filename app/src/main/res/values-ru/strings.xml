@@ -1,0 +1,31 @@
+<resources>
+    <string name="app_name">Штатус</string>
+
+    <string name="hint_enter_url">Введите URL</string>
+    <string name="hint_enter_name">Введите имя</string>
+
+    <string name="url">URL</string>
+    <string name="name">Имя</string>
+    <string name="status">Статус</string>
+
+    <string name="default_url">http://</string>
+
+    <string name="error_empty_name">Имя не должно быть пустым</string>
+    <string name="error_empty_url">URL не должен быть пустым</string>
+    <string name="error_invalid_url">Неверный URL</string>
+    <string name="error_null_activity">Activity не может быть null</string>
+    <string name="error_empty_connection_id">ConnectionId не может быть null</string>
+
+    <string name="title_delete_connection">Удалить это соединение?</string>
+    <string name="title_add_connection">Создать соединение</string>
+    <string name="title_edit_connection">Изменить соединение</string>
+
+    <string name="button_edit">Изменить</string>
+    <string name="button_delete">Удалить</string>
+    <string name="button_cancel">Отмена</string>
+    <string name="button_add">Добавить</string>
+    <string name="button_apply">Применить</string>
+    <string name="status_no_matches">Нет совпадений!</string>
+    <string name="status_no_connections">Добавьте соедиения!</string>
+    <string name="error_no_such_status">\"Нет статуса \"</string>
+</resources>

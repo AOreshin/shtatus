@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">connectivity</string>
+    <string name="app_name">Shtatus</string>
 
     <string name="hint_enter_url">Enter URL</string>
     <string name="hint_enter_name">Enter name</string>
