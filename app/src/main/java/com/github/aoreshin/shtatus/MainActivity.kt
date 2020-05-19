@@ -1,5 +1,6 @@
 package com.github.aoreshin.shtatus
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -9,32 +10,29 @@ import com.github.aoreshin.shtatus.fragments.ConnectionListFragment
 
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var fragment: ConnectionListFragment
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(findViewById(R.id.connectivity_toolbar))
-
-        if (savedInstanceState != null) {
-            fragment = supportFragmentManager.getFragment(savedInstanceState, FRAGMENT) as ConnectionListFragment
-        } else {
-            fragment = ConnectionListFragment()
-            addFragment()
-        }
-
+        addFragment()
     }
 
     private fun addFragment() {
+        val fragment = ConnectionListFragment()
         supportFragmentManager
             .beginTransaction()
-            .add(R.id.fragment_container, fragment)
+            .replace(R.id.fragment_container, fragment)
             .commit()
     }
 
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
         R.id.action_add -> {
             AddingDialogFragment().show(supportFragmentManager, "")
+            true
+        }
+        R.id.action_settings -> {
+            val intent = Intent(this@MainActivity, SettingsActivity::class.java)
+            startActivity(intent)
             true
         }
 
@@ -44,14 +42,5 @@ class MainActivity : AppCompatActivity() {
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu, menu)
         return true
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        supportFragmentManager.putFragment(outState, FRAGMENT, fragment);
-    }
-
-    companion object {
-        const val FRAGMENT = "connectionListFragment"
     }
 }

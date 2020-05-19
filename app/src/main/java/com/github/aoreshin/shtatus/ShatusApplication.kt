@@ -1,10 +1,7 @@
 package com.github.aoreshin.shtatus
 
 import android.app.Application
-import com.github.aoreshin.shtatus.dagger.AppModule
-import com.github.aoreshin.shtatus.dagger.ApplicationComponent
-import com.github.aoreshin.shtatus.dagger.DaggerApplicationComponent
-import com.github.aoreshin.shtatus.dagger.RoomModule
+import com.github.aoreshin.shtatus.dagger.*
 
 class ShatusApplication : Application() {
     lateinit var appComponent : ApplicationComponent
@@ -14,6 +11,7 @@ class ShatusApplication : Application() {
         appComponent = DaggerApplicationComponent.builder()
             .appModule(AppModule(this))
             .roomModule(RoomModule(this))
+            .retrofitModule(RetrofitModule(this))
             .build()
     }
 }

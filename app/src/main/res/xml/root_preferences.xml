@@ -1,0 +1,17 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory app:title="@string/button_settings">
+        <SwitchPreferenceCompat
+            app:key="enableHttps"
+            app:defaultValue="true"
+            app:title="@string/enable_https"/>
+
+        <SeekBarPreference
+            app:key="timeout"
+            app:title="@string/timeout"
+            app:showSeekBarValue="true"
+            app:defaultValue="5000"
+            android:max="60000"
+            android:min="0"/>
+    </PreferenceCategory>
+</PreferenceScreen>

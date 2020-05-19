@@ -6,4 +6,10 @@
         android:icon="@drawable/ic_add_24px"
         android:title="@string/title_add_connection"
         app:showAsAction="ifRoom"/>
+
+    <item
+        android:id="@+id/action_settings"
+        android:title="@string/button_settings"
+        android:icon="@drawable/ic_settings_24px"
+        app:showAsAction="ifRoom" />
 </menu>
