@@ -132,7 +132,7 @@ class ConnectionListViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        compositeDisposable.dispose()
+        compositeDisposable.clear()
     }
 
     private enum class TableStatus {
@@ -142,6 +142,6 @@ class ConnectionListViewModel @Inject constructor(
     }
 
     companion object {
-        const val TAG = "ConnectionListViewModel"
+        private const val TAG = "ConnectionListViewModel"
     }
 }
