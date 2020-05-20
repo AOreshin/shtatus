@@ -18,14 +18,10 @@ class ConnectionListAdapter(private val supportFragmentManager: FragmentManager,
             .inflate(R.layout.row_layout, parent, false) as LinearLayout
 
         linearLayout.apply {
-            startAnimation(AnimationUtils.loadAnimation(context, android.R.anim.fade_in));
+            startAnimation(AnimationUtils.loadAnimation(context, android.R.anim.fade_in))
             visibility = View.VISIBLE
         }
         return ConnectionViewHolder(linearLayout)
-    }
-
-    override fun submitList(list: List<Connection>?) {
-        super.submitList(list?.let { ArrayList(it) })
     }
 
     override fun onBindViewHolder(holder: ConnectionViewHolder, position: Int) {

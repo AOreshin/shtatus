@@ -11,6 +11,9 @@ import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
+import io.reactivex.subscribers.DisposableSubscriber
+import okhttp3.ResponseBody
+import retrofit2.Response
 import java.util.function.Predicate
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -106,14 +109,15 @@ class ConnectionListViewModel @Inject constructor(
                     }
             }
 
-            val disposable = Single.mergeDelayError(singles)
+            Single.mergeDelayError(singles)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doFinally { stopRefreshingEvent.call() }
-                .subscribe({ Log.d(TAG, "Request sending is finished") },
-                    { Log.d(TAG, it.message!!) })
-
-            compositeDisposable.add(disposable)
+                .subscribe(object: DisposableSubscriber<Response<ResponseBody>>() {
+                    override fun onComplete() { Log.d(TAG, "All requests sent") }
+                    override fun onNext(t: Response<ResponseBody>?) { Log.d(TAG, "Request is done") }
+                    override fun onError(t: Throwable?) { Log.d(TAG, t!!.message!!) }
+                })
         } else {
             stopRefreshingEvent.call()
         }
@@ -128,11 +132,6 @@ class ConnectionListViewModel @Inject constructor(
                 ignoreCase = true
             )
         }
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        compositeDisposable.clear()
     }
 
     private enum class TableStatus {
