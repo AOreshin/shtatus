@@ -27,7 +27,6 @@
     <string name="button_apply">Применить</string>
     <string name="status_no_matches">Нет совпадений!</string>
     <string name="status_no_connections">Добавьте соедиения!</string>
-    <string name="error_no_such_status">\"Нет статуса \"</string>
     <string name="button_settings">Настройки</string>
     <string name="enable_https">Включить HTTPS</string>
     <string name="timeout">Время ожидания (мс)</string>

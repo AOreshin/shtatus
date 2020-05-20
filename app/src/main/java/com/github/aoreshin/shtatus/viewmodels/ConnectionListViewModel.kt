@@ -20,13 +20,13 @@ class ConnectionListViewModel @Inject constructor(
     private val connectionRepository: ConnectionRepository
 ) : ViewModel() {
     private val compositeDisposable = CompositeDisposable()
+    private var tableStatus = TableStatus.OK
 
     private val connections = connectionRepository.allConnections()
-    private val mediatorConnection = MediatorLiveData<List<Connection>>().also {
-        it.value = connections.value
-    }
+    private val mediatorConnection = MediatorLiveData<List<Connection>>()
 
-    private val refreshLiveData = MutableLiveData(RefreshStatus.READY)
+    private val startRefreshingEvent = SingleLiveEvent<Void>()
+    private val stopRefreshingEvent = SingleLiveEvent<Void>()
     private val noMatchesEvent = SingleLiveEvent<Void>()
     private val emptyTableEvent = SingleLiveEvent<Void>()
 
@@ -43,25 +43,36 @@ class ConnectionListViewModel @Inject constructor(
         }
     }
 
-    fun getRefreshLiveData(): LiveData<RefreshStatus> = refreshLiveData
+    fun getStartRefreshingEvent(): LiveData<Void> = startRefreshingEvent
+    fun getStopRefreshingEvent(): LiveData<Void> = stopRefreshingEvent
     fun getNoMatchesEvent(): LiveData<Void> = noMatchesEvent
     fun getEmptyTableEvent(): LiveData<Void> = emptyTableEvent
     fun getConnections(): LiveData<List<Connection>> = mediatorConnection
 
     private fun update() {
-        if (connections.value.isNullOrEmpty()) {
-            emptyTableEvent.call()
-        } else {
-            mediatorConnection.value = connections.value?.filter { connection -> getPredicate().test(connection) }
+        if (connections.value != null) {
+            if (connections.value.isNullOrEmpty()) {
+                if (tableStatus != TableStatus.EMPTY) {
+                    emptyTableEvent.call()
+                    tableStatus = TableStatus.EMPTY
+                }
+            } else {
+                mediatorConnection.value = connections.value?.filter { connection -> getPredicate().test(connection) }
 
-            if (mediatorConnection.value.isNullOrEmpty()) {
-                noMatchesEvent.call()
+                if (mediatorConnection.value.isNullOrEmpty()) {
+                    if (tableStatus != TableStatus.NO_MATCHES) {
+                        noMatchesEvent.call()
+                        tableStatus = TableStatus.NO_MATCHES
+                    }
+                } else {
+                    tableStatus = TableStatus.OK
+                }
             }
         }
     }
 
     fun send() {
-        refreshLiveData.value = RefreshStatus.LOADING
+        startRefreshingEvent.call()
 
         if (!connections.value.isNullOrEmpty()) {
             val singles = connections.value?.map { connection ->
@@ -83,13 +94,13 @@ class ConnectionListViewModel @Inject constructor(
             val disposable = Single.mergeDelayError(singles)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .doFinally { refreshLiveData.value = RefreshStatus.READY }
-                .subscribe({ Log.d("ApplicationViewModel", "Request sending is finished") },
-                    { Log.d("ApplicationViewModel", it.message!!) })
+                .doFinally { stopRefreshingEvent.call() }
+                .subscribe({ Log.d(TAG, "Request sending is finished") },
+                    { Log.d(TAG, it.message!!) })
 
             compositeDisposable.add(disposable)
         } else {
-            refreshLiveData.value = RefreshStatus.READY
+            stopRefreshingEvent.call()
         }
     }
 
@@ -109,8 +120,13 @@ class ConnectionListViewModel @Inject constructor(
         compositeDisposable.dispose()
     }
 
-    enum class RefreshStatus {
-        LOADING,
-        READY
+    private enum class TableStatus {
+        NO_MATCHES,
+        EMPTY,
+        OK
+    }
+
+    companion object {
+        const val TAG = "ConnectionListViewModel"
     }
 }

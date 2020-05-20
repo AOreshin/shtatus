@@ -27,7 +27,6 @@
     <string name="button_apply">Apply</string>
     <string name="status_no_matches">No matches!</string>
     <string name="status_no_connections">Add some connections already!</string>
-    <string name="error_no_such_status">\"No such status \"</string>
     <string name="enable_https">Enable HTTPS</string>
     <string name="timeout">Request timeout (ms)</string>
     <string name="status">Status</string>

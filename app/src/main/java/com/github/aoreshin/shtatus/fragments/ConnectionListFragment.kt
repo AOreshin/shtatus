@@ -39,7 +39,7 @@ class ConnectionListFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_connection_list, container, false)
 
-        val application = (activity!!.application as ShatusApplication)
+        val application = (requireActivity().application as ShatusApplication)
         application.appComponent.inject(this)
 
         val viewModelProvider = ViewModelProvider(this, viewModelFactory)
@@ -56,15 +56,8 @@ class ConnectionListFragment : Fragment() {
     private fun setupObservers() {
         with(viewModel) {
             getConnections().observe(viewLifecycleOwner, Observer { viewAdapter.submitList(it) })
-
-            getRefreshLiveData().observe(viewLifecycleOwner, Observer { status ->
-                when (status) {
-                    ConnectionListViewModel.RefreshStatus.LOADING -> refreshLayout.isRefreshing = true
-                    ConnectionListViewModel.RefreshStatus.READY -> refreshLayout.isRefreshing = false
-                    else -> throwException(status.toString())
-                }
-            })
-
+            getStartRefreshingEvent().observe(viewLifecycleOwner, Observer { refreshLayout.isRefreshing = true })
+            getStopRefreshingEvent().observe(viewLifecycleOwner, Observer { refreshLayout.isRefreshing = false })
             getNoMatchesEvent().observe(viewLifecycleOwner, Observer { showToast(R.string.status_no_matches) })
             getEmptyTableEvent().observe(viewLifecycleOwner, Observer { showToast(R.string.status_no_connections) })
         }
@@ -105,10 +98,6 @@ class ConnectionListFragment : Fragment() {
         }
     }
 
-    private fun throwException(status: String) {
-        throw IllegalStateException(getString(R.string.error_no_such_status) + status)
-    }
-
     private fun showToast(resourceId: Int) {
         Toast.makeText(context, getString(resourceId), Toast.LENGTH_SHORT).show()
     }
@@ -117,8 +106,9 @@ class ConnectionListFragment : Fragment() {
         super.onDestroyView()
         with(viewModel) {
             getNoMatchesEvent().removeObservers(viewLifecycleOwner)
-            getRefreshLiveData().removeObservers(viewLifecycleOwner)
             getEmptyTableEvent().removeObservers(viewLifecycleOwner)
+            getStartRefreshingEvent().removeObservers(viewLifecycleOwner)
+            getStopRefreshingEvent().removeObservers(viewLifecycleOwner)
             getConnections().removeObservers(viewLifecycleOwner)
         }
     }
