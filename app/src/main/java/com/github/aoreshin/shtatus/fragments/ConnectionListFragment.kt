@@ -73,9 +73,9 @@ class ConnectionListFragment : Fragment() {
 
     private fun addFilterValues() {
         with(viewModel) {
-            nameEt.setText(nameLiveData.value)
-            urlEt.setText(urlLiveData.value)
-            statusCodeEt.setText(actualStatusLiveData.value)
+            nameEt.setText(getName())
+            urlEt.setText(getUrl())
+            statusCodeEt.setText(getStatus())
         }
     }
 
@@ -92,9 +92,9 @@ class ConnectionListFragment : Fragment() {
     private fun setupListeners() {
         with(viewModel) {
             refreshLayout.setOnRefreshListener { send() }
-            nameEt.addTextChangedListener { nameLiveData.value = it.toString() }
-            urlEt.addTextChangedListener { urlLiveData.value = it.toString() }
-            statusCodeEt.addTextChangedListener { actualStatusLiveData.value = it.toString() }
+            nameEt.addTextChangedListener { setName(it.toString()) }
+            urlEt.addTextChangedListener { setUrl(it.toString()) }
+            statusCodeEt.addTextChangedListener { setStatus(it.toString()) }
         }
     }
 

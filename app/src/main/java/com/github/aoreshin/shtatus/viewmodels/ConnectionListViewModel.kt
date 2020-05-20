@@ -30,16 +30,16 @@ class ConnectionListViewModel @Inject constructor(
     private val noMatchesEvent = SingleLiveEvent<Void>()
     private val emptyTableEvent = SingleLiveEvent<Void>()
 
-    val nameLiveData = MutableLiveData<String>()
-    val urlLiveData = MutableLiveData<String>()
-    val actualStatusLiveData = MutableLiveData<String>()
+    private val nameLiveData = MutableLiveData<String>()
+    private val urlLiveData = MutableLiveData<String>()
+    private val statusLiveData = MutableLiveData<String>()
 
     init {
         with(mediatorConnection) {
             addSource(connections) { update() }
             addSource(nameLiveData) { update() }
             addSource(urlLiveData) { update() }
-            addSource(actualStatusLiveData) { update() }
+            addSource(statusLiveData) { update() }
         }
     }
 
@@ -48,6 +48,21 @@ class ConnectionListViewModel @Inject constructor(
     fun getNoMatchesEvent(): LiveData<Void> = noMatchesEvent
     fun getEmptyTableEvent(): LiveData<Void> = emptyTableEvent
     fun getConnections(): LiveData<List<Connection>> = mediatorConnection
+    fun getName(): String? = nameLiveData.value
+    fun getUrl(): String? = urlLiveData.value
+    fun getStatus(): String? = statusLiveData.value
+
+    fun setName(name: String) {
+        nameLiveData.value = name
+    }
+
+    fun setUrl(url: String) {
+        urlLiveData.value = url
+    }
+
+    fun setStatus(status: String) {
+        statusLiveData.value = status
+    }
 
     private fun update() {
         if (connections.value != null) {
@@ -109,7 +124,7 @@ class ConnectionListViewModel @Inject constructor(
             connection.description.contains(nameLiveData.value.toString(), ignoreCase = true)
                     && connection.url.contains(urlLiveData.value.toString(), ignoreCase = true)
                     && connection.actualStatusCode.contains(
-                actualStatusLiveData.value.toString(),
+                statusLiveData.value.toString(),
                 ignoreCase = true
             )
         }
