@@ -7,9 +7,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.github.aoreshin.shtatus.events.SingleLiveEvent
 import com.github.aoreshin.shtatus.room.Connection
+import io.reactivex.FlowableSubscriber
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subscribers.DisposableSubscriber
 import okhttp3.ResponseBody
@@ -22,13 +22,11 @@ import javax.inject.Singleton
 class ConnectionListViewModel @Inject constructor(
     private val connectionRepository: ConnectionRepository
 ) : ViewModel() {
-    private val compositeDisposable = CompositeDisposable()
     private var tableStatus = TableStatus.OK
 
     private val connections = connectionRepository.allConnections()
     private val mediatorConnection = MediatorLiveData<List<Connection>>()
 
-    private val startRefreshingEvent = SingleLiveEvent<Void>()
     private val stopRefreshingEvent = SingleLiveEvent<Void>()
     private val noMatchesEvent = SingleLiveEvent<Void>()
     private val emptyTableEvent = SingleLiveEvent<Void>()
@@ -46,7 +44,6 @@ class ConnectionListViewModel @Inject constructor(
         }
     }
 
-    fun getStartRefreshingEvent(): LiveData<Void> = startRefreshingEvent
     fun getStopRefreshingEvent(): LiveData<Void> = stopRefreshingEvent
     fun getNoMatchesEvent(): LiveData<Void> = noMatchesEvent
     fun getEmptyTableEvent(): LiveData<Void> = emptyTableEvent
@@ -54,18 +51,9 @@ class ConnectionListViewModel @Inject constructor(
     fun getName(): String? = nameLiveData.value
     fun getUrl(): String? = urlLiveData.value
     fun getStatus(): String? = statusLiveData.value
-
-    fun setName(name: String) {
-        nameLiveData.value = name
-    }
-
-    fun setUrl(url: String) {
-        urlLiveData.value = url
-    }
-
-    fun setStatus(status: String) {
-        statusLiveData.value = status
-    }
+    fun setName(name: String) { nameLiveData.value = name }
+    fun setUrl(url: String) { urlLiveData.value = url }
+    fun setStatus(status: String) { statusLiveData.value = status }
 
     private fun update() {
         if (connections.value != null) {
@@ -90,8 +78,6 @@ class ConnectionListViewModel @Inject constructor(
     }
 
     fun send() {
-        startRefreshingEvent.call()
-
         if (!connections.value.isNullOrEmpty()) {
             val singles = connections.value?.map { connection ->
                 val id = connection.id
@@ -99,8 +85,7 @@ class ConnectionListViewModel @Inject constructor(
                 val url = connection.url
                 var message = ""
 
-                connectionRepository
-                    .sendRequest(url)
+                connectionRepository.sendRequest(url)
                     .doOnSuccess { message = it.code().toString() }
                     .doOnError { message = it.message!! }
                     .doFinally {
@@ -113,13 +98,17 @@ class ConnectionListViewModel @Inject constructor(
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doFinally { stopRefreshingEvent.call() }
-                .subscribe(object: DisposableSubscriber<Response<ResponseBody>>() {
-                    override fun onComplete() { Log.d(TAG, "All requests sent") }
-                    override fun onNext(t: Response<ResponseBody>?) { Log.d(TAG, "Request is done") }
-                    override fun onError(t: Throwable?) { Log.d(TAG, t!!.message!!) }
-                })
+                .subscribe(getSubscriber())
         } else {
             stopRefreshingEvent.call()
+        }
+    }
+
+    private fun getSubscriber() : FlowableSubscriber<Response<ResponseBody>> {
+        return object: DisposableSubscriber<Response<ResponseBody>>() {
+            override fun onComplete() { Log.d(TAG, "All requests sent") }
+            override fun onNext(t: Response<ResponseBody>?) { Log.d(TAG, "Request is done") }
+            override fun onError(t: Throwable?) { Log.d(TAG, t!!.message!!) }
         }
     }
 

@@ -53,10 +53,16 @@ class ConnectionListFragment : Fragment() {
         return view
     }
 
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        if (savedInstanceState != null) {
+            refreshLayout.isRefreshing = savedInstanceState.getBoolean(REFRESHING, false)
+        }
+    }
+
     private fun setupObservers() {
         with(viewModel) {
             getConnections().observe(viewLifecycleOwner, Observer { viewAdapter.submitList(it) })
-            getStartRefreshingEvent().observe(viewLifecycleOwner, Observer { refreshLayout.isRefreshing = true })
             getStopRefreshingEvent().observe(viewLifecycleOwner, Observer { refreshLayout.isRefreshing = false })
             getNoMatchesEvent().observe(viewLifecycleOwner, Observer { showToast(R.string.status_no_matches) })
             getEmptyTableEvent().observe(viewLifecycleOwner, Observer { showToast(R.string.status_no_connections) })
@@ -98,6 +104,11 @@ class ConnectionListFragment : Fragment() {
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(REFRESHING, refreshLayout.isRefreshing)
+    }
+
     private fun showToast(resourceId: Int) {
         Toast.makeText(context, getString(resourceId), Toast.LENGTH_SHORT).show()
     }
@@ -107,9 +118,12 @@ class ConnectionListFragment : Fragment() {
         with(viewModel) {
             getNoMatchesEvent().removeObservers(viewLifecycleOwner)
             getEmptyTableEvent().removeObservers(viewLifecycleOwner)
-            getStartRefreshingEvent().removeObservers(viewLifecycleOwner)
             getStopRefreshingEvent().removeObservers(viewLifecycleOwner)
             getConnections().removeObservers(viewLifecycleOwner)
         }
+    }
+
+    companion object {
+        private const val REFRESHING = "isRefreshing"
     }
 }

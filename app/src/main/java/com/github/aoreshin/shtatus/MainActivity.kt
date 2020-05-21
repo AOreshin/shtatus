@@ -10,15 +10,22 @@ import com.github.aoreshin.shtatus.fragments.ConnectionListFragment
 
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var fragment: ConnectionListFragment
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(findViewById(R.id.connectivity_toolbar))
-        addFragment()
+        addFragment(savedInstanceState)
     }
 
-    private fun addFragment() {
-        val fragment = ConnectionListFragment()
+    private fun addFragment(savedInstanceState: Bundle?) {
+        fragment = if (savedInstanceState != null) {
+            supportFragmentManager.getFragment(savedInstanceState, KEY) as ConnectionListFragment
+        } else {
+            ConnectionListFragment()
+        }
+
         supportFragmentManager
             .beginTransaction()
             .replace(R.id.fragment_container, fragment)
@@ -42,5 +49,14 @@ class MainActivity : AppCompatActivity() {
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu, menu)
         return true
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        supportFragmentManager.putFragment(outState, KEY, fragment)
+    }
+
+    companion object {
+        private const val KEY = "listFragment"
     }
 }
