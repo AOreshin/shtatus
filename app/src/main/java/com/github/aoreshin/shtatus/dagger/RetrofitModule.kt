@@ -1,8 +1,10 @@
 package com.github.aoreshin.shtatus.dagger
 
 import android.app.Application
-import android.content.Context
-import com.github.aoreshin.shtatus.SettingsActivity.Companion.SHTATUS_PREFS
+import android.util.Log
+import androidx.preference.PreferenceManager
+import com.github.aoreshin.shtatus.SettingsActivity.SettingsFragment.Companion.HTTPS_KEY
+import com.github.aoreshin.shtatus.SettingsActivity.SettingsFragment.Companion.TIMEOUT_KEY
 import com.github.aoreshin.shtatus.viewmodels.RetrofitService
 import dagger.Module
 import dagger.Provides
@@ -14,7 +16,7 @@ import javax.inject.Singleton
 
 @Module
 class RetrofitModule(application: Application) {
-    private val preferences = application.getSharedPreferences(SHTATUS_PREFS, Context.MODE_PRIVATE)
+    private val preferences = PreferenceManager.getDefaultSharedPreferences(application)
 
     private fun getRetrofit(): Retrofit {
         return Retrofit
@@ -26,15 +28,22 @@ class RetrofitModule(application: Application) {
     }
 
     private fun getClient(): OkHttpClient {
+        val timeout = preferences.getInt(TIMEOUT_KEY, 5000).toLong()
+
+        Log.d(TAG, "Setting $TIMEOUT_KEY $timeout")
+
         val client = OkHttpClient()
             .newBuilder()
-            .callTimeout(Duration.ofMillis(preferences.getLong("timeout", 5000)))
+            .callTimeout(Duration.ofMillis(timeout))
 
-        val enableHttps = preferences.getBoolean("enableHttps", true)
+        val enableHttps = preferences.getBoolean(HTTPS_KEY, true)
+
+        Log.d(TAG, "Setting $HTTPS_KEY $enableHttps")
 
         if (!enableHttps) {
             client.hostnameVerifier { _, _ -> true }
         }
+
 
         return client.build()
     }
@@ -49,5 +58,9 @@ class RetrofitModule(application: Application) {
     @Provides
     fun retrofitService(): RetrofitService {
         return getRetrofit().create(RetrofitService::class.java)
+    }
+
+    companion object {
+        private const val TAG = "RetrofitModule"
     }
 }
