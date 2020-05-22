@@ -44,7 +44,6 @@ class RetrofitModule(application: Application) {
             client.hostnameVerifier { _, _ -> true }
         }
 
-
         return client.build()
     }
 
