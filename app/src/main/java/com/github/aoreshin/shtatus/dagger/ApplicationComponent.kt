@@ -7,7 +7,6 @@ import com.github.aoreshin.shtatus.fragments.DeletingDialogFragment
 import com.github.aoreshin.shtatus.fragments.EditingDialogFragment
 import com.github.aoreshin.shtatus.room.ConnectionDao
 import com.github.aoreshin.shtatus.room.ConnectivityDatabase
-import com.github.aoreshin.shtatus.viewmodels.RetrofitService
 import dagger.Component
 import javax.inject.Singleton
 
@@ -25,5 +24,5 @@ interface ApplicationComponent {
 
     fun application(): Application?
 
-    fun retrofitService(): RetrofitService?
+    fun retrofitServiceProvider(): RetrofitServiceProvider?
 }

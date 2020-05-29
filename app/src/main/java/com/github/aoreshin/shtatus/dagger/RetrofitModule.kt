@@ -1,6 +1,7 @@
 package com.github.aoreshin.shtatus.dagger
 
 import android.app.Application
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.util.Log
 import androidx.preference.PreferenceManager
 import com.github.aoreshin.shtatus.SettingsActivity.SettingsFragment.Companion.HTTPS_KEY
@@ -17,6 +18,13 @@ import javax.inject.Singleton
 @Module
 class RetrofitModule(application: Application) {
     private val preferences = PreferenceManager.getDefaultSharedPreferences(application)
+    private val retrofitServiceProvider = RetrofitServiceProvider(retrofitService(), this)
+    private val listener: OnSharedPreferenceChangeListener? =
+        OnSharedPreferenceChangeListener { _, _ -> retrofitServiceProvider.retrofitService = retrofitService(); }
+
+    init {
+        PreferenceManager.getDefaultSharedPreferences(application).registerOnSharedPreferenceChangeListener(listener)
+    }
 
     private fun getRetrofit(): Retrofit {
         return Retrofit
@@ -47,16 +55,14 @@ class RetrofitModule(application: Application) {
         return client.build()
     }
 
-    @Singleton
-    @Provides
-    fun retrofit(): Retrofit {
-        return getRetrofit()
+    private fun retrofitService(): RetrofitService {
+        return getRetrofit().create(RetrofitService::class.java)
     }
 
     @Singleton
     @Provides
-    fun retrofitService(): RetrofitService {
-        return getRetrofit().create(RetrofitService::class.java)
+    fun retrofitServiceProvider(): RetrofitServiceProvider {
+        return retrofitServiceProvider
     }
 
     companion object {

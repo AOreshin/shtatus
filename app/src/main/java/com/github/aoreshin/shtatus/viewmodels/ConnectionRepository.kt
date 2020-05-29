@@ -1,10 +1,7 @@
 package com.github.aoreshin.shtatus.viewmodels
 
-import android.app.Application
-import android.content.SharedPreferences
 import androidx.lifecycle.LiveData
-import androidx.preference.PreferenceManager
-import com.github.aoreshin.shtatus.dagger.RetrofitModule
+import com.github.aoreshin.shtatus.dagger.RetrofitServiceProvider
 import com.github.aoreshin.shtatus.room.Connection
 import com.github.aoreshin.shtatus.room.ConnectionDao
 import io.reactivex.Completable
@@ -18,14 +15,9 @@ import javax.inject.Singleton
 
 @Singleton
 class ConnectionRepository @Inject constructor(
-    private val application: Application,
     private val connectionDao: ConnectionDao,
-    private var retrofitService: RetrofitService
-) : SharedPreferences.OnSharedPreferenceChangeListener {
-
-    init {
-        PreferenceManager.getDefaultSharedPreferences(application).registerOnSharedPreferenceChangeListener(this)
-    }
+    private val retrofitServiceProvider: RetrofitServiceProvider
+) {
 
     fun allConnections(): LiveData<List<Connection>> {
         return connectionDao.all()
@@ -51,12 +43,8 @@ class ConnectionRepository @Inject constructor(
     }
 
     fun sendRequest(url: String): Single<Response<ResponseBody>> {
-        return retrofitService.get(url)
+        return retrofitServiceProvider.retrofitService.get(url)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-    }
-
-    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
-        retrofitService = RetrofitModule(application).retrofitService()
     }
 }
